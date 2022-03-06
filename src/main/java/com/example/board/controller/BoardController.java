@@ -14,17 +14,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.example.board.repository.Post;
 import com.example.board.repository.PostFactory;
 import com.example.board.repository.PostRepository;
+import com.example.board.validation.GroupOrder;
 
 
 /**
  * 掲示板のフロントコントローラー
  */
-@Controller
+@Controller  //インスタンスの生成を指示
 public class BoardController {
 	
 	/** 投稿の一覧*/
-	@Autowired
-	private PostRepository repository;     //Autowiredを宣言しているのでPostRepositoryとの繋がりの軽減をしている(フィールドインジェクション？)
+	@Autowired  //@Controllerで生成したインスタンスを利用するクラスで参照を受け取るためのフィールドに付与するアノテーション
+	private PostRepository repository;     
 
 /**
  * 一覧を表示する
@@ -44,11 +45,12 @@ public String index(Model model) {
   /**
    * 一覧を設定する
    * 
-   * ＠param model モデル
+   * @param model モデル
    * @return 一覧を設定したモデル
    */
    private Model setList(Model model) {
-	   Iterable<Post> list =repository.findAll();
+	   //Iterable<Post> list = repository.findAllByOrderByUpdatedDateDesc();
+	   Iterable<Post> list = repository.findByDeletedFalseOrderByUpdatedDateDesc();
 	   model.addAttribute("list",list);
 	   return model;
    }
@@ -60,7 +62,7 @@ public String index(Model model) {
     *  @return テンプレート
     */
    @RequestMapping(value = "/create", method = RequestMethod.POST)
-   public String create(@ModelAttribute("form") @Validated Post form, BindingResult result, Model model) {
+   public String create(@ModelAttribute("form") @Validated(GroupOrder.class) Post form, BindingResult result, Model model) {	  
 	   if (!result.hasErrors()) {
 		   repository.saveAndFlush(PostFactory.createPost(form));
 		   model.addAttribute("form", PostFactory.newPost());
@@ -93,7 +95,7 @@ public String index(Model model) {
     */
    @RequestMapping(value = "/update", method = RequestMethod.POST)
    //public String update(@ModelAttribute("form") Post form, Model model) {
-   public String update(@ModelAttribute("form") @Validated Post form, BindingResult result, Model model) {
+   public String update(@ModelAttribute("form") @Validated(GroupOrder.class) Post form, BindingResult result, Model model) {
 	   if(!result.hasErrors()) {
 	   Optional<Post> post = repository.findById(form.getId());
 	   repository.saveAndFlush(PostFactory.updatePost(post.get(), form));
@@ -101,7 +103,7 @@ public String index(Model model) {
 	   model.addAttribute("form", PostFactory.newPost());
 	   model = setList(model);
 	   model.addAttribute("path", "create");
-	   return "layout";
+	   return "layout";  //layout.htmlに値を返す
    }
    /**
     * 削除する
