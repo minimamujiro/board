@@ -40,7 +40,7 @@ public class PostFactory {  //この新規投稿・編集・削除といった�
 	 *  更新内容を設定した投稿を生成する
 	 *  
 	 *  @param post 投稿
-	 *  ＠return 投稿
+	 *  @return 投稿
 	 */
 	public static Post updatePost(Post post, Post form) {
 		post.setAuthor(form.getAuthor());
